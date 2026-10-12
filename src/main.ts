@@ -1,0 +1,46 @@
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix('api/v1');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(',') || '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+  });
+
+  const config = new DocumentBuilder()
+    .setTitle('PhysioSense Notification API')
+    .setDescription('Notification microservice for push, email, SMS and in-app notifications')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .addTag('notifications', 'Notification management')
+    .addTag('devices', 'Device token management')
+    .addTag('preferences', 'Notification preferences')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  const port = process.env.PORT || 3002;
+  await app.listen(port);
+  console.log(`🚀 Notification service running on port ${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
+}
+
+bootstrap();
