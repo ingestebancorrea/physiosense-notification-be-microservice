@@ -13,7 +13,7 @@ import {
 } from '../../common/enums/notification.enums';
 
 interface SendNotificationOptions {
-  userId: string;
+  userId: number | null;
   title: string;
   body: string;
   channel?: NotificationChannel;
@@ -21,7 +21,7 @@ interface SendNotificationOptions {
   data?: Record<string, any>;
   imageUrl?: string;
   actionUrl?: string;
-  templateId?: string;
+  templateId?: number;
   templateData?: Record<string, any>;
   scheduledAt?: Date;
 }
@@ -43,7 +43,11 @@ export class NotificationDispatcherService {
 
   async send(options: SendNotificationOptions): Promise<Notification[]> {
     const { userId, channel, ...rest } = options;
-    const channels = channel ? [channel] : await this.getEnabledChannels(userId);
+    const channels = channel
+      ? [channel]
+      : userId === null
+        ? [NotificationChannel.PUSH]
+        : await this.getEnabledChannels(userId);
 
     const notifications = await Promise.all(
       channels.map((ch) => this.createNotification({ ...rest, userId, channel: ch })),
@@ -55,10 +59,10 @@ export class NotificationDispatcherService {
   }
 
   async sendBulk(
-    userIds: string[],
+    userIds: number[],
     options: Omit<SendNotificationOptions, 'userId'>,
-  ): Promise<Map<string, Notification[]>> {
-    const results = new Map<string, Notification[]>();
+  ): Promise<Map<number, Notification[]>> {
+    const results = new Map<number, Notification[]>();
 
     await Promise.all(
       userIds.map(async (userId) => {
@@ -77,15 +81,16 @@ export class NotificationDispatcherService {
     const notification = this.notificationRepository.create({
       ...options,
       channel: NotificationChannel.PUSH,
-      userId: `topic:${topic}`,
+      userId: null,
       status: NotificationStatus.PENDING,
+      data: { ...options.data, topic },
     });
 
     await this.notificationRepository.save(notification);
     await this.pushService.sendToTopic(notification, topic);
   }
 
-  private async getEnabledChannels(userId: string): Promise<NotificationChannel[]> {
+  private async getEnabledChannels(userId: number): Promise<NotificationChannel[]> {
     const preferences = await this.preferenceRepository.find({ where: { userId } });
 
     const defaultChannels: NotificationChannel[] = [NotificationChannel.PUSH];
@@ -131,6 +136,11 @@ export class NotificationDispatcherService {
   }
 
   private async dispatchPush(notification: Notification): Promise<void> {
+    if (notification.userId === null) {
+      await this.handleFailure(notification, 'Notification has no user associated');
+      return;
+    }
+
     const deviceTokens = await this.deviceTokenRepository.find({
       where: { userId: notification.userId, isActive: true },
     });

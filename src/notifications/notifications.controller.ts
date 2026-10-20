@@ -39,7 +39,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get user notifications with filters' })
   @ApiResponse({ status: 200, description: 'List of notifications' })
   async findByUser(
-    @Query('userId') userId: string,
+    @Query('userId') userId: number,
     @Query('channel') channel?: NotificationChannel,
     @Query('status') status?: NotificationStatus,
     @Query('limit') limit?: number,
@@ -60,14 +60,14 @@ export class NotificationsController {
   @Get('stats')
   @ApiOperation({ summary: 'Get notification statistics for user' })
   @ApiResponse({ status: 200, description: 'Notification statistics' })
-  async getStats(@Query('userId') userId: string) {
+  async getStats(@Query('userId') userId: number) {
     return this.notificationsService.getStats(userId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a single notification' })
   @ApiResponse({ status: 200, description: 'Notification details' })
-  async findOne(@Param('id') id: string, @Query('userId') userId: string) {
+  async findOne(@Param('id') id: number, @Query('userId') userId: number) {
     return this.notificationsService.findOne(id, userId);
   }
 
@@ -75,7 +75,7 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Mark notification as read' })
   @ApiResponse({ status: 204, description: 'Notification marked as read' })
-  async markAsRead(@Param('id') id: string, @Query('userId') userId: string) {
+  async markAsRead(@Param('id') id: number, @Query('userId') userId: number) {
     await this.notificationsService.markAsRead(id, userId);
   }
 
@@ -83,7 +83,7 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Mark all notifications as read' })
   @ApiResponse({ status: 204, description: 'All notifications marked as read' })
-  async markAllAsRead(@Query('userId') userId: string) {
+  async markAllAsRead(@Query('userId') userId: number) {
     await this.notificationsService.markAllAsRead(userId);
   }
 
@@ -91,7 +91,7 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a notification' })
   @ApiResponse({ status: 204, description: 'Notification deleted' })
-  async delete(@Param('id') id: string, @Query('userId') userId: string) {
+  async delete(@Param('id') id: number, @Query('userId') userId: number) {
     await this.notificationsService.delete(id, userId);
   }
 
@@ -112,7 +112,7 @@ export class NotificationsController {
   @Patch('templates/:id')
   @ApiOperation({ summary: 'Update template' })
   @ApiResponse({ status: 200, description: 'Template updated' })
-  async updateTemplate(@Param('id') id: string, @Body() dto: Partial<CreateTemplateDto>) {
+  async updateTemplate(@Param('id') id: number, @Body() dto: Partial<CreateTemplateDto>) {
     return this.notificationsService.updateTemplate(id, dto);
   }
 
@@ -120,7 +120,7 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete template' })
   @ApiResponse({ status: 204, description: 'Template deleted' })
-  async deleteTemplate(@Param('id') id: string) {
+  async deleteTemplate(@Param('id') id: number) {
     await this.notificationsService.deleteTemplate(id);
   }
 }

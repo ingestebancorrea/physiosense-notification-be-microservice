@@ -15,11 +15,11 @@ import { NotificationChannel, NotificationStatus, NotificationPriority } from '.
 @Index(['userId', 'createdAt'])
 @Index(['channel', 'status'])
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'uuid' })
-  userId: string;
+  @Column({ type: 'int' })
+  userId: number | null;
 
   @Column({
     type: 'enum',
@@ -56,8 +56,8 @@ export class Notification {
   @Column({ type: 'varchar', length: 500, nullable: true })
   actionUrl: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  templateId: string;
+  @Column({ type: 'int', nullable: true })
+  templateId: number | null;
 
   @Column({ type: 'jsonb', nullable: true })
   templateData: Record<string, any>;

@@ -36,7 +36,7 @@ export class DevicesService {
     return this.deviceTokenRepository.save(deviceToken);
   }
 
-  async unregister(userId: string, token: string): Promise<boolean> {
+  async unregister(userId: number, token: string): Promise<boolean> {
     const result = await this.deviceTokenRepository.update(
       { userId, token },
       { isActive: false },
@@ -44,7 +44,7 @@ export class DevicesService {
     return (result.affected || 0) > 0;
   }
 
-  async unregisterAll(userId: string): Promise<number> {
+  async unregisterAll(userId: number): Promise<number> {
     const result = await this.deviceTokenRepository.update(
       { userId },
       { isActive: false },
@@ -52,7 +52,7 @@ export class DevicesService {
     return result.affected || 0;
   }
 
-  async getUserDevices(userId: string): Promise<DeviceToken[]> {
+  async getUserDevices(userId: number): Promise<DeviceToken[]> {
     return this.deviceTokenRepository.find({
       where: { userId, isActive: true },
       order: { lastUsedAt: 'DESC' },
@@ -66,7 +66,7 @@ export class DevicesService {
     });
   }
 
-  async updateLastUsed(userId: string, token: string): Promise<void> {
+  async updateLastUsed(userId: number, token: string): Promise<void> {
     await this.deviceTokenRepository.update(
       { userId, token },
       { lastUsedAt: new Date() },
