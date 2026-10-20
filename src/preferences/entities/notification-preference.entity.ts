@@ -20,7 +20,7 @@ export class NotificationPreference {
   userId: number;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationChannel,
   })
   channel: NotificationChannel;
