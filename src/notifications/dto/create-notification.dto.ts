@@ -1,6 +1,6 @@
 import { IsString, IsOptional, IsEnum, IsObject, IsUUID, IsDateString, ValidateNested, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
-import { NotificationChannel, NotificationPriority } from '../common/enums/notification.enums';
+import { NotificationChannel, NotificationPriority } from '../../common/enums/notification.enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateNotificationDto {

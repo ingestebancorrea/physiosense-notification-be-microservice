@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { NotificationPreference } from './entities/notification-preference.entity';
 import { NotificationChannel } from '../common/enums/notification.enums';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
@@ -45,7 +45,7 @@ export class PreferencesService {
     enabled: boolean,
     settings?: Record<string, any>,
   ): Promise<NotificationPreference> {
-    const preference = await this.preferenceRepository.upsert(
+    await this.preferenceRepository.upsert(
       {
         userId,
         channel,
@@ -57,7 +57,7 @@ export class PreferencesService {
     );
 
     return this.preferenceRepository.findOneOrFail({
-      where: { userId, channel, category: category || null },
+      where: { userId, channel, category } as FindOptionsWhere<NotificationPreference>,
     });
   }
 
@@ -65,10 +65,7 @@ export class PreferencesService {
     const prefs = await this.getUserPreferences(userId);
 
     const defaults: Record<NotificationChannel, boolean> = {
-      [NotificationChannel.IN_APP]: true,
       [NotificationChannel.PUSH]: true,
-      [NotificationChannel.EMAIL]: true,
-      [NotificationChannel.SMS]: false,
     };
 
     const result = { ...defaults };
@@ -92,10 +89,7 @@ export class PreferencesService {
     if (general) return general.enabled;
 
     const defaults: Record<NotificationChannel, boolean> = {
-      [NotificationChannel.IN_APP]: true,
       [NotificationChannel.PUSH]: true,
-      [NotificationChannel.EMAIL]: true,
-      [NotificationChannel.SMS]: false,
     };
 
     return defaults[channel];

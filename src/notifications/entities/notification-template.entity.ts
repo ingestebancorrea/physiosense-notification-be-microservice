@@ -7,7 +7,7 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { NotificationChannel } from '../common/enums/notification.enums';
+import { NotificationChannel } from '../../common/enums/notification.enums';
 
 @Entity('notification_templates')
 @Unique(['channel', 'name'])

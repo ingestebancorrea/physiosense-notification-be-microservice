@@ -5,8 +5,7 @@ import { Notification } from './entities/notification.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
 import { NotificationDispatcherService } from '../channels/services/notification-dispatcher.service';
 import { NotificationChannel, NotificationStatus, NotificationPriority } from '../common/enums/notification.enums';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { CreateTemplateDto } from './dto/create-template.dto';
+import { CreateNotificationDto, CreateTemplateDto } from './dto/create-notification.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -20,6 +19,7 @@ export class NotificationsService {
 
   async create(dto: CreateNotificationDto): Promise<Notification[]> {
     const priority = dto.priority || NotificationPriority.NORMAL;
+    const scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : undefined;
 
     if (dto.templateId) {
       const template = await this.templateRepository.findOne({
@@ -38,7 +38,7 @@ export class NotificationsService {
           actionUrl: dto.actionUrl,
           templateId: template.id,
           templateData: dto.templateData,
-          scheduledAt: dto.scheduledAt,
+          scheduledAt,
         });
       }
     }
@@ -52,16 +52,22 @@ export class NotificationsService {
       data: dto.data,
       imageUrl: dto.imageUrl,
       actionUrl: dto.actionUrl,
-      scheduledAt: dto.scheduledAt,
+      scheduledAt,
     });
   }
 
   async createBulk(userIds: string[], dto: Omit<CreateNotificationDto, 'userId'>): Promise<Map<string, Notification[]>> {
-    return this.dispatcher.sendBulk(userIds, dto);
+    return this.dispatcher.sendBulk(userIds, {
+      ...dto,
+      scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
+    });
   }
 
   async sendToTopic(topic: string, dto: Omit<CreateNotificationDto, 'userId' | 'channel'>): Promise<void> {
-    return this.dispatcher.sendToTopic(topic, dto);
+    return this.dispatcher.sendToTopic(topic, {
+      ...dto,
+      scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
+    });
   }
 
   async findByUser(

@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsOptional, IsUUID } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DevicePlatform } from '../common/enums/notification.enums';
+import { DevicePlatform } from '../../common/enums/notification.enums';
 
 export class RegisterDeviceDto {
   @ApiProperty({ example: 'user-uuid-here' })

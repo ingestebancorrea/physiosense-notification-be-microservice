@@ -8,7 +8,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { NotificationChannel, NotificationStatus, NotificationPriority } from '../common/enums/notification.enums';
+import { NotificationChannel, NotificationStatus, NotificationPriority } from '../../common/enums/notification.enums';
 
 @Entity('notifications')
 @Index(['userId', 'status'])
@@ -69,7 +69,7 @@ export class Notification {
   readAt: Date;
 
   @Column({ type: 'text', nullable: true })
-  errorMessage: string;
+  errorMessage: string | null;
 
   @Column({ type: 'int', default: 0 })
   retryCount: number;

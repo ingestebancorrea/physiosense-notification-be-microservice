@@ -7,7 +7,7 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { NotificationChannel } from '../common/enums/notification.enums';
+import { NotificationChannel } from '../../common/enums/notification.enums';
 
 @Entity('notification_preferences')
 @Unique(['userId', 'channel', 'category'])
@@ -26,7 +26,7 @@ export class NotificationPreference {
   channel: NotificationChannel;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  category: string;
+  category: string | null;
 
   @Column({ type: 'boolean', default: true })
   enabled: boolean;

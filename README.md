@@ -1,10 +1,7 @@
 # PhysioSense Notification Backend Microservice
 
-Microservicio de notificaciones para PhysioSense que soporta múltiples canales:
+Microservicio de notificaciones para PhysioSense. Para este MVP soporta un único canal:
 - **Push Notifications** (Firebase Cloud Messaging / APNs)
-- **Email** (SMTP - Gmail, SendGrid, Mailgun, etc.)
-- **SMS** (Twilio)
-- **In-App** (Base de datos, consultables via API)
 
 ## 🚀 Inicio Rápido
 
@@ -12,8 +9,6 @@ Microservicio de notificaciones para PhysioSense que soporta múltiples canales:
 - Node.js 18+
 - PostgreSQL 14+ (o Supabase)
 - Cuenta Firebase (para push)
-- Cuenta SMTP (para email)
-- Cuenta Twilio (para SMS, opcional)
 
 ### Instalación
 
@@ -80,9 +75,6 @@ src/
 └── channels/                  # Servicios de envío por canal
     ├── services/
     │   ├── push-notification.service.ts   # Firebase
-    │   ├── email-notification.service.ts  # Nodemailer
-    │   ├── sms-notification.service.ts    # Twilio
-    │   ├── in-app-notification.service.ts # Base de datos
     │   └── notification-dispatcher.service.ts # Orquestador
     └── channels.module.ts
 ```
@@ -187,15 +179,12 @@ curl -X PUT http://localhost:3002/api/v1/preferences?userId=uuid-del-usuario \
   -d '{
     "preferences": [
       { "channel": "PUSH", "enabled": true },
-      { "channel": "EMAIL", "enabled": true },
-      { "channel": "SMS", "enabled": false },
-      { "channel": "IN_APP", "enabled": true },
       { "channel": "PUSH", "category": "marketing", "enabled": false }
     ]
   }'
 ```
 
-## 🔧 Configuración por Canal
+## 🔧 Configuración del Canal Push
 
 ### Firebase (Push)
 1. Crear proyecto en [Firebase Console](https://console.firebase.google.com)
@@ -206,23 +195,6 @@ curl -X PUT http://localhost:3002/api/v1/preferences?userId=uuid-del-usuario \
    FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@tu-project.iam.gserviceaccount.com
    FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nTU_KEY\n-----END PRIVATE KEY-----\n"
    ```
-
-### Email (SMTP)
-Configurar en `.env`:
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tu-email@gmail.com
-SMTP_PASS=tu-app-password  # No uses tu password real, usa App Password
-SMTP_FROM=PhysioSense <noreply@physiosense.com>
-```
-
-### SMS (Twilio)
-```env
-TWILIO_ACCOUNT_SID=ACxxxxxxxx
-TWILIO_AUTH_TOKEN=xxxxxxxx
-TWILIO_FROM_NUMBER=+15551234567
-```
 
 ## 🧪 Testing
 
@@ -253,13 +225,6 @@ npm run start:prod
 | `FIREBASE_PROJECT_ID` | ID proyecto Firebase | Para push |
 | `FIREBASE_CLIENT_EMAIL` | Email service account | Para push |
 | `FIREBASE_PRIVATE_KEY` | Private key Firebase | Para push |
-| `SMTP_HOST` | Host SMTP | Para email |
-| `SMTP_PORT` | Puerto SMTP | Para email |
-| `SMTP_USER` | Usuario SMTP | Para email |
-| `SMTP_PASS` | Password SMTP | Para email |
-| `TWILIO_ACCOUNT_SID` | Account SID Twilio | Para SMS |
-| `TWILIO_AUTH_TOKEN` | Auth Token Twilio | Para SMS |
-| `TWILIO_FROM_NUMBER` | Número remitente | Para SMS |
 
 ## 📋 Base de Datos
 
@@ -279,19 +244,12 @@ Ejecuta `database-schema.sql` en tu PostgreSQL/Supabase. Incluye:
 │   (Mobile/Web)  │     │  (Auth Validate) │     │ Service         │
 └─────────────────┘     └──────────────────┘     └────────┬────────┘
                                                           │
-                        ┌─────────────────────────────────┼─────────────────────────────────┐
-                        ▼                                 ▼                                 ▼
-               ┌─────────────────┐              ┌─────────────────┐              ┌─────────────────┐
-               │  Push Service   │              │  Email Service  │              │   SMS Service   │
-               │   (Firebase)    │              │   (Nodemailer)  │              │    (Twilio)     │
-               └─────────────────┘              └─────────────────┘              └─────────────────┘
-                        │                                 │                                 │
-                        └─────────────────────────────────┼─────────────────────────────────┘
-                                                          ▼
-                                               ┌─────────────────┐
-                                               │  In-App Service │
-                                               │  (Database)     │
-                                               └─────────────────┘
+                         ┌────────────────────────────────┘
+                         ▼
+                ┌─────────────────┐
+                │  Push Service   │
+                │   (Firebase)    │
+                └─────────────────┘
 ```
 
 ## 📄 Licencia

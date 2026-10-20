@@ -26,7 +26,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('PhysioSense Notification API')
-    .setDescription('Notification microservice for push, email, SMS and in-app notifications')
+    .setDescription('Notification microservice for push notifications')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('notifications', 'Notification management')
