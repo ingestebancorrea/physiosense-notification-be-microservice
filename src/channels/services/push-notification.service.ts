@@ -1,9 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
-import { Notification } from '../notifications/entities/notification.entity';
-import { DeviceToken } from '../devices/entities/device-token.entity';
-import { NotificationChannel, NotificationStatus } from '../common/enums/notification.enums';
+import { Notification } from '../../notifications/entities/notification.entity';
+import { DeviceToken } from '../../devices/entities/device-token.entity';
+import {
+  NotificationChannel,
+  NotificationStatus,
+  NotificationPriority,
+} from '../../common/enums/notification.enums';
 
 @Injectable()
 export class PushNotificationService {

@@ -19,9 +19,9 @@ export class DevicesService {
 
     if (existing) {
       existing.platform = dto.platform;
-      existing.appVersion = dto.appVersion;
-      existing.deviceModel = dto.deviceModel;
-      existing.osVersion = dto.osVersion;
+      existing.appVersion = dto.appVersion ?? existing.appVersion;
+      existing.deviceModel = dto.deviceModel ?? existing.deviceModel;
+      existing.osVersion = dto.osVersion ?? existing.osVersion;
       existing.isActive = true;
       existing.lastUsedAt = new Date();
       return this.deviceTokenRepository.save(existing);

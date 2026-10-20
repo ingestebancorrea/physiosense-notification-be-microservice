@@ -2,18 +2,15 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Notification } from '../notifications/entities/notification.entity';
-import { DeviceToken } from '../devices/entities/device-token.entity';
-import { NotificationPreference } from '../preferences/entities/notification-preference.entity';
+import { Notification } from '../../notifications/entities/notification.entity';
+import { DeviceToken } from '../../devices/entities/device-token.entity';
+import { NotificationPreference } from '../../preferences/entities/notification-preference.entity';
 import { PushNotificationService } from './push-notification.service';
-import { EmailNotificationService } from './email-notification.service';
-import { SmsNotificationService } from './sms-notification.service';
-import { InAppNotificationService } from './in-app-notification.service';
 import {
   NotificationChannel,
   NotificationStatus,
   NotificationPriority,
-} from '../common/enums/notification.enums';
+} from '../../common/enums/notification.enums';
 
 interface SendNotificationOptions {
   userId: string;
@@ -41,15 +38,12 @@ export class NotificationDispatcherService {
     @InjectRepository(NotificationPreference)
     private preferenceRepository: Repository<NotificationPreference>,
     private pushService: PushNotificationService,
-    private emailService: EmailNotificationService,
-    private smsService: SmsNotificationService,
-    private inAppService: InAppNotificationService,
     private configService: ConfigService,
   ) {}
 
   async send(options: SendNotificationOptions): Promise<Notification[]> {
     const { userId, channel, ...rest } = options;
-    const channels = channel ? [channel] : await this.getEnabledChannels(userId, rest.priority);
+    const channels = channel ? [channel] : await this.getEnabledChannels(userId);
 
     const notifications = await Promise.all(
       channels.map((ch) => this.createNotification({ ...rest, userId, channel: ch })),
@@ -91,24 +85,17 @@ export class NotificationDispatcherService {
     await this.pushService.sendToTopic(notification, topic);
   }
 
-  private async getEnabledChannels(userId: string, priority?: NotificationPriority): Promise<NotificationChannel[]> {
+  private async getEnabledChannels(userId: string): Promise<NotificationChannel[]> {
     const preferences = await this.preferenceRepository.find({ where: { userId } });
 
-    const defaultChannels: NotificationChannel[] = [
-      NotificationChannel.IN_APP,
-      NotificationChannel.PUSH,
-    ];
-
-    if (priority === NotificationPriority.URGENT || priority === NotificationPriority.HIGH) {
-      defaultChannels.push(NotificationChannel.EMAIL);
-    }
+    const defaultChannels: NotificationChannel[] = [NotificationChannel.PUSH];
 
     if (preferences.length === 0) {
       return defaultChannels;
     }
 
     return preferences
-      .filter((p) => p.enabled)
+      .filter((p) => p.enabled && p.channel === NotificationChannel.PUSH)
       .map((p) => p.channel);
   }
 
@@ -138,15 +125,8 @@ export class NotificationDispatcherService {
       case NotificationChannel.PUSH:
         await this.dispatchPush(notification);
         break;
-      case NotificationChannel.EMAIL:
-        await this.dispatchEmail(notification);
-        break;
-      case NotificationChannel.SMS:
-        await this.dispatchSms(notification);
-        break;
-      case NotificationChannel.IN_APP:
-        await this.dispatchInApp(notification);
-        break;
+      default:
+        await this.handleFailure(notification, `Unsupported channel: ${notification.channel}`);
     }
   }
 
@@ -167,43 +147,6 @@ export class NotificationDispatcherService {
     } else {
       await this.handleFailure(notification, result.errors.join('; '));
     }
-  }
-
-  private async dispatchEmail(notification: Notification): Promise<void> {
-    const email = this.extractEmail(notification);
-    if (!email) {
-      await this.handleFailure(notification, 'No email found for user');
-      return;
-    }
-
-    const result = await this.emailService.send(notification, email);
-
-    if (result.success) {
-      await this.markSent(notification);
-    } else {
-      await this.handleFailure(notification, result.error || 'Email send failed');
-    }
-  }
-
-  private async dispatchSms(notification: Notification): Promise<void> {
-    const phone = this.extractPhone(notification);
-    if (!phone) {
-      await this.handleFailure(notification, 'No phone number found for user');
-      return;
-    }
-
-    const result = await this.smsService.send(notification, phone);
-
-    if (result.success) {
-      await this.markSent(notification);
-    } else {
-      await this.handleFailure(notification, result.error || 'SMS send failed');
-    }
-  }
-
-  private async dispatchInApp(notification: Notification): Promise<void> {
-    await this.inAppService.create(notification);
-    await this.markSent(notification);
   }
 
   private async markSent(notification: Notification): Promise<void> {
@@ -234,14 +177,6 @@ export class NotificationDispatcherService {
       });
       this.logger.warn(`Notification ${notification.id} failed (attempt ${newRetryCount}): ${error}`);
     }
-  }
-
-  private extractEmail(notification: Notification): string | null {
-    return notification.data?.email || null;
-  }
-
-  private extractPhone(notification: Notification): string | null {
-    return notification.data?.phone || null;
   }
 
   async retryFailed(limit = 100): Promise<number> {
