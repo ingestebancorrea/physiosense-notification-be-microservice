@@ -21,7 +21,7 @@ import { ChannelsModule } from './channels/channels.module';
         url: configService.get('DATABASE_URL'),
         schema: configService.get('DB_SCHEMA') || 'public',
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('NODE_ENV') !== 'production',
+        synchronize: false,
         logging: configService.get('NODE_ENV') === 'development',
         ssl: configService.get('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
       }),

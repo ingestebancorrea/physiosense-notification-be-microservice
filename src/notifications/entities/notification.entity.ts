@@ -22,20 +22,20 @@ export class Notification {
   userId: string;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationChannel,
   })
   channel: NotificationChannel;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationStatus,
     default: NotificationStatus.PENDING,
   })
   status: NotificationStatus;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationPriority,
     default: NotificationPriority.NORMAL,
   })

@@ -28,17 +28,26 @@ export class PushNotificationService {
       return;
     }
 
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-      });
+    if (privateKey.includes('YOUR_PRIVATE_KEY') || clientEmail.includes('your-project')) {
+      this.logger.warn('Firebase credentials are placeholders. Push notifications will not work.');
+      return;
     }
 
-    this.messaging = admin.messaging();
+    try {
+      if (!admin.apps.length) {
+        admin.initializeApp({
+          credential: admin.credential.cert({
+            projectId,
+            clientEmail,
+            privateKey,
+          }),
+        });
+      }
+
+      this.messaging = admin.messaging();
+    } catch (error) {
+      this.logger.error(`Failed to initialize Firebase: ${error.message}. Push notifications will not work.`);
+    }
   }
 
   async send(notification: Notification, deviceTokens: DeviceToken[]): Promise<{
