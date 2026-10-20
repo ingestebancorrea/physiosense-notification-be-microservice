@@ -56,7 +56,7 @@ export class NotificationsService {
     });
   }
 
-  async createBulk(userIds: string[], dto: Omit<CreateNotificationDto, 'userId'>): Promise<Map<string, Notification[]>> {
+  async createBulk(userIds: number[], dto: Omit<CreateNotificationDto, 'userId'>): Promise<Map<number, Notification[]>> {
     return this.dispatcher.sendBulk(userIds, {
       ...dto,
       scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
@@ -71,7 +71,7 @@ export class NotificationsService {
   }
 
   async findByUser(
-    userId: string,
+    userId: number,
     options: {
       channel?: NotificationChannel;
       status?: NotificationStatus;
@@ -106,20 +106,20 @@ export class NotificationsService {
     return { data, total };
   }
 
-  async findOne(id: string, userId: string): Promise<Notification | null> {
+  async findOne(id: number, userId: number): Promise<Notification | null> {
     return this.notificationRepository.findOne({
       where: { id, userId },
     });
   }
 
-  async markAsRead(id: string, userId: string): Promise<void> {
+  async markAsRead(id: number, userId: number): Promise<void> {
     await this.notificationRepository.update(
       { id, userId },
       { status: NotificationStatus.READ, readAt: new Date() },
     );
   }
 
-  async markAllAsRead(userId: string): Promise<number> {
+  async markAllAsRead(userId: number): Promise<number> {
     const result = await this.notificationRepository.update(
       { userId, status: NotificationStatus.SENT },
       { status: NotificationStatus.READ, readAt: new Date() },
@@ -127,7 +127,7 @@ export class NotificationsService {
     return result.affected || 0;
   }
 
-  async getStats(userId: string): Promise<{
+  async getStats(userId: number): Promise<{
     total: number;
     unread: number;
     byChannel: Record<NotificationChannel, number>;
@@ -153,7 +153,7 @@ export class NotificationsService {
     };
   }
 
-  async delete(id: string, userId: string): Promise<boolean> {
+  async delete(id: number, userId: number): Promise<boolean> {
     const result = await this.notificationRepository.delete({ id, userId });
     return (result.affected || 0) > 0;
   }
@@ -175,12 +175,12 @@ export class NotificationsService {
     return query.orderBy('template.name', 'ASC').getMany();
   }
 
-  async updateTemplate(id: string, dto: Partial<CreateTemplateDto>): Promise<NotificationTemplate | null> {
+  async updateTemplate(id: number, dto: Partial<CreateTemplateDto>): Promise<NotificationTemplate | null> {
     await this.templateRepository.update(id, dto);
     return this.templateRepository.findOne({ where: { id } });
   }
 
-  async deleteTemplate(id: string): Promise<boolean> {
+  async deleteTemplate(id: number): Promise<boolean> {
     const result = await this.templateRepository.delete(id);
     return (result.affected || 0) > 0;
   }

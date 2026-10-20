@@ -21,7 +21,7 @@ export class DevicesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Unregister a device token' })
   @ApiResponse({ status: 204, description: 'Device unregistered' })
-  async unregister(@Query('userId') userId: string, @Body() dto: UnregisterDeviceDto) {
+  async unregister(@Query('userId') userId: number, @Body() dto: UnregisterDeviceDto) {
     await this.devicesService.unregister(userId, dto.token);
   }
 
@@ -29,14 +29,14 @@ export class DevicesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Unregister all devices for a user' })
   @ApiResponse({ status: 204, description: 'All devices unregistered' })
-  async unregisterAll(@Query('userId') userId: string) {
+  async unregisterAll(@Query('userId') userId: number) {
     await this.devicesService.unregisterAll(userId);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get user devices' })
   @ApiResponse({ status: 200, description: 'List of user devices' })
-  async getUserDevices(@Query('userId') userId: string) {
+  async getUserDevices(@Query('userId') userId: number) {
     return this.devicesService.getUserDevices(userId);
   }
 

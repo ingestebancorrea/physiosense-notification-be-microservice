@@ -14,11 +14,11 @@ import { DevicePlatform } from '../../common/enums/notification.enums';
 @Index(['userId', 'isActive'])
 @Index(['token'])
 export class DeviceToken {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'uuid' })
-  userId: string;
+  @Column({ type: 'int' })
+  userId: number;
 
   @Column({ type: 'text' })
   token: string;

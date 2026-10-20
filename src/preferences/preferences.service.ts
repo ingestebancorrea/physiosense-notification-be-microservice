@@ -12,14 +12,14 @@ export class PreferencesService {
     private preferenceRepository: Repository<NotificationPreference>,
   ) {}
 
-  async getUserPreferences(userId: string): Promise<NotificationPreference[]> {
+  async getUserPreferences(userId: number): Promise<NotificationPreference[]> {
     return this.preferenceRepository.find({
       where: { userId },
       order: { channel: 'ASC', category: 'ASC' },
     });
   }
 
-  async updatePreferences(userId: string, dto: UpdatePreferencesDto): Promise<NotificationPreference[]> {
+  async updatePreferences(userId: number, dto: UpdatePreferencesDto): Promise<NotificationPreference[]> {
     const { preferences } = dto;
 
     for (const pref of preferences) {
@@ -39,7 +39,7 @@ export class PreferencesService {
   }
 
   async updateSingle(
-    userId: string,
+    userId: number,
     channel: NotificationChannel,
     category: string | null,
     enabled: boolean,
@@ -61,7 +61,7 @@ export class PreferencesService {
     });
   }
 
-  async getEffectivePreferences(userId: string): Promise<Record<NotificationChannel, boolean>> {
+  async getEffectivePreferences(userId: number): Promise<Record<NotificationChannel, boolean>> {
     const prefs = await this.getUserPreferences(userId);
 
     const defaults: Record<NotificationChannel, boolean> = {
@@ -79,7 +79,7 @@ export class PreferencesService {
     return result;
   }
 
-  async isEnabled(userId: string, channel: NotificationChannel, category?: string): Promise<boolean> {
+  async isEnabled(userId: number, channel: NotificationChannel, category?: string): Promise<boolean> {
     const prefs = await this.getUserPreferences(userId);
 
     const specific = prefs.find((p) => p.channel === channel && p.category === category);
@@ -95,7 +95,7 @@ export class PreferencesService {
     return defaults[channel];
   }
 
-  async resetToDefaults(userId: string): Promise<void> {
+  async resetToDefaults(userId: number): Promise<void> {
     await this.preferenceRepository.delete({ userId });
   }
 }

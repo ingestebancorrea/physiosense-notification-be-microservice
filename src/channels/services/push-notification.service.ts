@@ -60,7 +60,7 @@ export class PushNotificationService {
       },
       data: {
         ...notification.data,
-        notificationId: notification.id,
+        notificationId: String(notification.id),
         channel: NotificationChannel.PUSH,
       },
       android: {
@@ -127,7 +127,7 @@ export class PushNotificationService {
         },
         data: {
           ...notification.data,
-          notificationId: notification.id,
+          notificationId: String(notification.id),
           channel: NotificationChannel.PUSH,
         },
       });
