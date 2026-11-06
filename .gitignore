@@ -29,6 +29,11 @@ coverage/
 # TypeScript cache
 *.tsbuildinfo
 
+# Firebase service account credentials
+secrets/
+*service-account*.json
+firebase-adminsdk*.json
+
 # Misc
 *.pem
 .vercel

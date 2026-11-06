@@ -5,9 +5,11 @@ import { DeviceToken } from '../devices/entities/device-token.entity';
 import { NotificationPreference } from '../preferences/entities/notification-preference.entity';
 import { PushNotificationService } from './services/push-notification.service';
 import { NotificationDispatcherService } from './services/notification-dispatcher.service';
+import { PushStatusController } from './push-status.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Notification, DeviceToken, NotificationPreference])],
+  controllers: [PushStatusController],
   providers: [PushNotificationService, NotificationDispatcherService],
   exports: [PushNotificationService, NotificationDispatcherService],
 })

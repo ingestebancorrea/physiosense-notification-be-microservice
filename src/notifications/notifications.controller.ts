@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, HttpCode, HttpStatus, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto, CreateTemplateDto, BulkNotificationDto } from './dto/create-notification.dto';
@@ -42,8 +42,8 @@ export class NotificationsController {
     @Query('userId') userId: string,
     @Query('channel') channel?: NotificationChannel,
     @Query('status') status?: NotificationStatus,
-    @Query('limit') limit?: number,
-    @Query('offset') offset?: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit?: number,
+    @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {

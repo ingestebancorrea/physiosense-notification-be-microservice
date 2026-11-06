@@ -17,7 +17,7 @@ export class DeviceToken {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
+  @Column({ type: 'varchar', length: 64 })
   userId: string;
 
   @Column({ type: 'text' })

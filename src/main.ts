@@ -32,6 +32,7 @@ async function bootstrap() {
     .addTag('notifications', 'Notification management')
     .addTag('devices', 'Device token management')
     .addTag('preferences', 'Notification preferences')
+    .addTag('push', 'Push channel (Firebase) status')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
