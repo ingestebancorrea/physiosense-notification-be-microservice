@@ -362,6 +362,7 @@ npm run start:prod
 | Variable | Descripción | Requerida |
 |----------|-------------|-----------|
 | `DATABASE_URL` | URL conexión PostgreSQL | ✅ |
+| `DB_LOGGING` | `true` imprime cada consulta SQL de TypeORM; por defecto `false` | ❌ |
 | `JWT_SECRET` | Secreto para validar JWT | ✅ |
 | `FIREBASE_PROJECT_ID` | ID proyecto Firebase | Para push |
 | `FIREBASE_CLIENT_EMAIL` | Email service account | Para push |

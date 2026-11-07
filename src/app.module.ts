@@ -22,7 +22,10 @@ import { ChannelsModule } from './channels/channels.module';
         schema: configService.get('DB_SCHEMA') || 'public',
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: false,
-        logging: configService.get('NODE_ENV') === 'development',
+        // Las consultas SQL solo se imprimen si se habilita DB_LOGGING=true.
+        // NODE_ENV=development ya no activa el log por sí solo para no llenar
+        // la consola en el entorno local.
+        logging: configService.get('DB_LOGGING') === 'true',
         ssl: configService.get('DB_SSL') === 'true' ? { rejectUnauthorized: false } : false,
       }),
       inject: [ConfigService],
