@@ -81,7 +81,11 @@ export class NotificationsService {
       endDate?: Date;
     } = {},
   ): Promise<{ data: Notification[]; total: number }> {
-    const { channel, status, limit = 50, offset = 0, startDate, endDate } = options;
+    const { channel, status, startDate, endDate } = options;
+    const requestedLimit = Number(options.limit);
+    const requestedOffset = Number(options.offset);
+    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : 50;
+    const offset = Number.isFinite(requestedOffset) && requestedOffset >= 0 ? requestedOffset : 0;
 
     const query = this.notificationRepository
       .createQueryBuilder('notification')
