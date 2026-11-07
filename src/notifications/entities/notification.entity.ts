@@ -8,34 +8,34 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { NotificationChannel, NotificationStatus, NotificationPriority } from '../common/enums/notification.enums';
+import { NotificationChannel, NotificationStatus, NotificationPriority } from '../../common/enums/notification.enums';
 
 @Entity('notifications')
 @Index(['userId', 'status'])
 @Index(['userId', 'createdAt'])
 @Index(['channel', 'status'])
 export class Notification {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'uuid' })
-  userId: string;
+  @Column({ type: 'int' })
+  userId: number | null;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationChannel,
   })
   channel: NotificationChannel;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationStatus,
     default: NotificationStatus.PENDING,
   })
   status: NotificationStatus;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationPriority,
     default: NotificationPriority.NORMAL,
   })
@@ -56,8 +56,8 @@ export class Notification {
   @Column({ type: 'varchar', length: 500, nullable: true })
   actionUrl: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  templateId: string;
+  @Column({ type: 'int', nullable: true })
+  templateId: number | null;
 
   @Column({ type: 'jsonb', nullable: true })
   templateData: Record<string, any>;
@@ -69,7 +69,7 @@ export class Notification {
   readAt: Date;
 
   @Column({ type: 'text', nullable: true })
-  errorMessage: string;
+  errorMessage: string | null;
 
   @Column({ type: 'int', default: 0 })
   retryCount: number;

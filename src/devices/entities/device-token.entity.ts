@@ -7,18 +7,18 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { DevicePlatform } from '../common/enums/notification.enums';
+import { DevicePlatform } from '../../common/enums/notification.enums';
 
 @Entity('device_tokens')
 @Unique(['userId', 'token'])
 @Index(['userId', 'isActive'])
 @Index(['token'])
 export class DeviceToken {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'uuid' })
-  userId: string;
+  @Column({ type: 'int' })
+  userId: number;
 
   @Column({ type: 'text' })
   token: string;
@@ -30,13 +30,13 @@ export class DeviceToken {
   platform: DevicePlatform;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  appVersion: string;
+  appVersion: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  deviceModel: string;
+  deviceModel: string | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  osVersion: string;
+  osVersion: string | null;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

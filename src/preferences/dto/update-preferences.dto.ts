@@ -1,7 +1,7 @@
 import { IsArray, ValidateNested, IsEnum, IsBoolean, IsOptional, IsString, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { NotificationChannel } from '../common/enums/notification.enums';
+import { NotificationChannel } from '../../common/enums/notification.enums';
 
 export class PreferenceItemDto {
   @ApiProperty({ enum: NotificationChannel, example: NotificationChannel.PUSH })

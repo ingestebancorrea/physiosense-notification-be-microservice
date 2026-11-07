@@ -1,10 +1,7 @@
 # PhysioSense Notification Backend Microservice
 
-Microservicio de notificaciones para PhysioSense que soporta múltiples canales:
+Microservicio de notificaciones para PhysioSense. Para este MVP soporta un único canal:
 - **Push Notifications** (Firebase Cloud Messaging / APNs)
-- **Email** (SMTP - Gmail, SendGrid, Mailgun, etc.)
-- **SMS** (Twilio)
-- **In-App** (Base de datos, consultables via API)
 
 ## 🚀 Inicio Rápido
 
@@ -12,8 +9,6 @@ Microservicio de notificaciones para PhysioSense que soporta múltiples canales:
 - Node.js 18+
 - PostgreSQL 14+ (o Supabase)
 - Cuenta Firebase (para push)
-- Cuenta SMTP (para email)
-- Cuenta Twilio (para SMS, opcional)
 
 ### Instalación
 
@@ -80,9 +75,6 @@ src/
 └── channels/                  # Servicios de envío por canal
     ├── services/
     │   ├── push-notification.service.ts   # Firebase
-    │   ├── email-notification.service.ts  # Nodemailer
-    │   ├── sms-notification.service.ts    # Twilio
-    │   ├── in-app-notification.service.ts # Base de datos
     │   └── notification-dispatcher.service.ts # Orquestador
     └── channels.module.ts
 ```
@@ -137,7 +129,7 @@ curl -X POST http://localhost:3002/api/v1/notifications \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "userId": "uuid-del-usuario",
+    "userId": "26",
     "title": "Nueva cita",
     "body": "Tu cita ha sido confirmada para mañana a las 10:00 AM",
     "channel": "PUSH",
@@ -153,7 +145,7 @@ curl -X POST http://localhost:3002/api/v1/notifications \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
-    "userId": "uuid-del-usuario",
+    "userId": "26",
     "templateId": "appointment_confirmed",
     "templateData": {
       "doctorName": "Dr. Pérez",
@@ -170,7 +162,7 @@ curl -X POST http://localhost:3002/api/v1/devices/register \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer USER_JWT_TOKEN" \
   -d '{
-    "userId": "uuid-del-usuario",
+    "userId": "26",
     "token": "fcm-token-from-device",
     "platform": "ANDROID",
     "appVersion": "1.2.3",
@@ -181,48 +173,169 @@ curl -X POST http://localhost:3002/api/v1/devices/register \
 
 ### Actualizar preferencias
 ```bash
-curl -X PUT http://localhost:3002/api/v1/preferences?userId=uuid-del-usuario \
+curl -X PUT http://localhost:3002/api/v1/preferences?userId=26 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -d '{
     "preferences": [
       { "channel": "PUSH", "enabled": true },
-      { "channel": "EMAIL", "enabled": true },
-      { "channel": "SMS", "enabled": false },
-      { "channel": "IN_APP", "enabled": true },
       { "channel": "PUSH", "category": "marketing", "enabled": false }
     ]
   }'
 ```
 
-## 🔧 Configuración por Canal
+## 🔧 Configuración del Canal Push
 
 ### Firebase (Push)
-1. Crear proyecto en [Firebase Console](https://console.firebase.google.com)
-2. Generar Service Account Key (Project Settings > Service Accounts)
-3. Configurar en `.env`:
+
+#### 1. Registrar la app Android (React Native)
+1. Firebase Console → ⚙️ **Configuración del proyecto** → **Tus apps** → **Agregar app** → **Android**.
+2. Usa el `applicationId` exacto de `android/app/build.gradle` (p. ej. `com.physiosense.app`).
+3. Descarga `google-services.json` y colócalo en `android/app/google-services.json`.
+4. Aplica el plugin de Google Services:
+   - `android/build.gradle` → `classpath 'com.google.gms:google-services:4.4.2'`
+   - `android/app/build.gradle` → `apply plugin: 'com.google.gms.google-services'`
+5. Instala las librerías:
+   ```bash
+   npm install @react-native-firebase/app @react-native-firebase/messaging
+   ```
+   > Con **Expo** necesitas un *development build* (no funciona en Expo Go);
+   > alternativamente usa `expo-notifications` + `getDevicePushTokenAsync()`.
+
+> Cloud Messaging ya viene habilitado por defecto en proyectos nuevos. No hace falta
+> subir nada más para Android (para iOS sí necesitas una APNs key).
+
+#### 2. Generar la service account (backend)
+1. Firebase Console → ⚙️ **Configuración del proyecto** → **Cuentas de servicio**.
+2. Pulsa **Generar nueva clave privada** y descarga el `.json`.
+3. Guárdalo como `secrets/firebase-service-account.json` en la raíz del repo
+   (esa carpeta está en `.gitignore`; **nunca** la subas a git).
+4. En `.env` deja solo:
    ```env
-   FIREBASE_PROJECT_ID=tu-project-id
-   FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@tu-project.iam.gserviceaccount.com
-   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nTU_KEY\n-----END PRIVATE KEY-----\n"
+   FIREBASE_SERVICE_ACCOUNT_PATH=./secrets/firebase-service-account.json
    ```
 
-### Email (SMTP)
-Configurar en `.env`:
+Alternativas soportadas:
 ```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tu-email@gmail.com
-SMTP_PASS=tu-app-password  # No uses tu password real, usa App Password
-SMTP_FROM=PhysioSense <noreply@physiosense.com>
+# JSON completo (o base64) en una sola línea, útil para CI/CD
+FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}
+
+# O las tres variables clásicas (la clave con \n literales y entre comillas)
+FIREBASE_PROJECT_ID=tu-project-id
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@tu-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nTU_KEY\n-----END PRIVATE KEY-----\n"
 ```
 
-### SMS (Twilio)
-```env
-TWILIO_ACCOUNT_SID=ACxxxxxxxx
-TWILIO_AUTH_TOKEN=xxxxxxxx
-TWILIO_FROM_NUMBER=+15551234567
+#### 3. Verificar que el backend quedó conectado
+```bash
+curl http://localhost:3002/api/v1/push/status
+# { "configured": true, "projectId": "tu-project-id", "source": "file ..." }
 ```
+Si `configured` es `false`, el campo `error` dice exactamente qué falta
+(archivo inexistente, JSON inválido, credenciales placeholder, etc.).
+
+#### 4. React Native: obtener el token y registrarlo
+
+> `@react-native-firebase/messaging` v22+ usa la **API modular** (no hay
+> `export default`). El `userId` es el id numérico del auth service convertido
+> a string, por ejemplo `"26"` (la columna `userId` es `varchar(64)`).
+
+```ts
+import {
+  getMessaging,
+  getToken,
+  registerDeviceForRemoteMessages,
+} from '@react-native-firebase/messaging';
+import { PermissionsAndroid, Platform } from 'react-native';
+
+export async function registerForPush(userId: number) {
+  // Android 13+ requiere permiso explícito
+  if (Platform.OS === 'android' && Number(Platform.Version) >= 33) {
+    await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+  }
+
+  const messaging = getMessaging();
+
+  if (Platform.OS === 'ios') {
+    await registerDeviceForRemoteMessages(messaging);
+  }
+
+  const token = await getToken(messaging);
+
+  await fetch('http://<IP-DEL-BACKEND>:3002/api/v1/devices/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId: String(userId), token, platform: 'ANDROID' }),
+  });
+}
+```
+
+Manejo de mensajes (fuera del componente, en `index.js` para el background):
+```ts
+import {
+  getMessaging,
+  onMessage,
+  setBackgroundMessageHandler,
+} from '@react-native-firebase/messaging';
+
+setBackgroundMessageHandler(getMessaging(), async remoteMessage => {
+  console.log('Push en background:', remoteMessage);
+});
+
+// En un componente:
+onMessage(getMessaging(), async remoteMessage => {
+  console.log('Push en foreground:', remoteMessage);
+});
+```
+
+Canal de Android (opcional pero recomendado):
+```ts
+import notifee, { AndroidImportance } from '@notifee/react-native';
+
+await notifee.createChannel({
+  id: 'physiosense_default',
+  name: 'PhysioSense',
+  importance: AndroidImportance.HIGH,
+});
+```
+Si creas ese canal, agrega en el `.env` del backend:
+```env
+ANDROID_NOTIFICATION_CHANNEL_ID=physiosense_default
+```
+Si no lo creas, deja la variable vacía y FCM usará su canal de respaldo.
+
+#### 5. Probar un envío
+```bash
+# 1) Registrar el token real del dispositivo (ver paso 4)
+# 2) Crear la notificación
+curl -X POST http://localhost:3002/api/v1/notifications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "26",
+    "title": "Cita confirmada",
+    "body": "Tu cita es mañana a las 10:00",
+    "channel": "PUSH",
+    "priority": "HIGH",
+    "data": { "appointmentId": "apt-123", "attempt": 1 }
+  }'
+
+# 3) Revisar el resultado del envío (status SENT/FAILED y errorMessage)
+curl "http://localhost:3002/api/v1/notifications?userId=26"
+```
+
+> El teléfono/emulador no puede usar `localhost` del PC. Opciones:
+> `adb reverse tcp:3002 tcp:3002` (emulador o USB) o usar la IP LAN del PC
+> (`ipconfig`) y permitir el puerto en el firewall.
+
+Notas:
+- Los valores de `data` se convierten automáticamente a string (FCM lo exige).
+- Si `imageUrl` es `null` se omite del payload (FCM rechaza `null`).
+- Errores típicos: `invalid_grant` → service account revocada o reloj desincronizado;
+  `messaging/registration-token-not-registered` → token viejo, hay que volver a registrarlo.
+
+
 
 ## 🧪 Testing
 
@@ -249,17 +362,11 @@ npm run start:prod
 | Variable | Descripción | Requerida |
 |----------|-------------|-----------|
 | `DATABASE_URL` | URL conexión PostgreSQL | ✅ |
+| `DB_LOGGING` | `true` imprime cada consulta SQL de TypeORM; por defecto `false` | ❌ |
 | `JWT_SECRET` | Secreto para validar JWT | ✅ |
 | `FIREBASE_PROJECT_ID` | ID proyecto Firebase | Para push |
 | `FIREBASE_CLIENT_EMAIL` | Email service account | Para push |
 | `FIREBASE_PRIVATE_KEY` | Private key Firebase | Para push |
-| `SMTP_HOST` | Host SMTP | Para email |
-| `SMTP_PORT` | Puerto SMTP | Para email |
-| `SMTP_USER` | Usuario SMTP | Para email |
-| `SMTP_PASS` | Password SMTP | Para email |
-| `TWILIO_ACCOUNT_SID` | Account SID Twilio | Para SMS |
-| `TWILIO_AUTH_TOKEN` | Auth Token Twilio | Para SMS |
-| `TWILIO_FROM_NUMBER` | Número remitente | Para SMS |
 
 ## 📋 Base de Datos
 
@@ -279,19 +386,12 @@ Ejecuta `database-schema.sql` en tu PostgreSQL/Supabase. Incluye:
 │   (Mobile/Web)  │     │  (Auth Validate) │     │ Service         │
 └─────────────────┘     └──────────────────┘     └────────┬────────┘
                                                           │
-                        ┌─────────────────────────────────┼─────────────────────────────────┐
-                        ▼                                 ▼                                 ▼
-               ┌─────────────────┐              ┌─────────────────┐              ┌─────────────────┐
-               │  Push Service   │              │  Email Service  │              │   SMS Service   │
-               │   (Firebase)    │              │   (Nodemailer)  │              │    (Twilio)     │
-               └─────────────────┘              └─────────────────┘              └─────────────────┘
-                        │                                 │                                 │
-                        └─────────────────────────────────┼─────────────────────────────────┘
-                                                          ▼
-                                               ┌─────────────────┐
-                                               │  In-App Service │
-                                               │  (Database)     │
-                                               └─────────────────┘
+                         ┌────────────────────────────────┘
+                         ▼
+                ┌─────────────────┐
+                │  Push Service   │
+                │   (Firebase)    │
+                └─────────────────┘
 ```
 
 ## 📄 Licencia

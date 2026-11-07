@@ -5,8 +5,7 @@ import { Notification } from './entities/notification.entity';
 import { NotificationTemplate } from './entities/notification-template.entity';
 import { NotificationDispatcherService } from '../channels/services/notification-dispatcher.service';
 import { NotificationChannel, NotificationStatus, NotificationPriority } from '../common/enums/notification.enums';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { CreateTemplateDto } from './dto/create-template.dto';
+import { CreateNotificationDto, CreateTemplateDto } from './dto/create-notification.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -20,6 +19,7 @@ export class NotificationsService {
 
   async create(dto: CreateNotificationDto): Promise<Notification[]> {
     const priority = dto.priority || NotificationPriority.NORMAL;
+    const scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : undefined;
 
     if (dto.templateId) {
       const template = await this.templateRepository.findOne({
@@ -38,7 +38,7 @@ export class NotificationsService {
           actionUrl: dto.actionUrl,
           templateId: template.id,
           templateData: dto.templateData,
-          scheduledAt: dto.scheduledAt,
+          scheduledAt,
         });
       }
     }
@@ -52,20 +52,26 @@ export class NotificationsService {
       data: dto.data,
       imageUrl: dto.imageUrl,
       actionUrl: dto.actionUrl,
-      scheduledAt: dto.scheduledAt,
+      scheduledAt,
     });
   }
 
-  async createBulk(userIds: string[], dto: Omit<CreateNotificationDto, 'userId'>): Promise<Map<string, Notification[]>> {
-    return this.dispatcher.sendBulk(userIds, dto);
+  async createBulk(userIds: number[], dto: Omit<CreateNotificationDto, 'userId'>): Promise<Map<number, Notification[]>> {
+    return this.dispatcher.sendBulk(userIds, {
+      ...dto,
+      scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
+    });
   }
 
   async sendToTopic(topic: string, dto: Omit<CreateNotificationDto, 'userId' | 'channel'>): Promise<void> {
-    return this.dispatcher.sendToTopic(topic, dto);
+    return this.dispatcher.sendToTopic(topic, {
+      ...dto,
+      scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : undefined,
+    });
   }
 
   async findByUser(
-    userId: string,
+    userId: number,
     options: {
       channel?: NotificationChannel;
       status?: NotificationStatus;
@@ -75,7 +81,11 @@ export class NotificationsService {
       endDate?: Date;
     } = {},
   ): Promise<{ data: Notification[]; total: number }> {
-    const { channel, status, limit = 50, offset = 0, startDate, endDate } = options;
+    const { channel, status, startDate, endDate } = options;
+    const requestedLimit = Number(options.limit);
+    const requestedOffset = Number(options.offset);
+    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : 50;
+    const offset = Number.isFinite(requestedOffset) && requestedOffset >= 0 ? requestedOffset : 0;
 
     const query = this.notificationRepository
       .createQueryBuilder('notification')
@@ -100,20 +110,20 @@ export class NotificationsService {
     return { data, total };
   }
 
-  async findOne(id: string, userId: string): Promise<Notification | null> {
+  async findOne(id: number, userId: number): Promise<Notification | null> {
     return this.notificationRepository.findOne({
       where: { id, userId },
     });
   }
 
-  async markAsRead(id: string, userId: string): Promise<void> {
+  async markAsRead(id: number, userId: number): Promise<void> {
     await this.notificationRepository.update(
       { id, userId },
       { status: NotificationStatus.READ, readAt: new Date() },
     );
   }
 
-  async markAllAsRead(userId: string): Promise<number> {
+  async markAllAsRead(userId: number): Promise<number> {
     const result = await this.notificationRepository.update(
       { userId, status: NotificationStatus.SENT },
       { status: NotificationStatus.READ, readAt: new Date() },
@@ -121,7 +131,7 @@ export class NotificationsService {
     return result.affected || 0;
   }
 
-  async getStats(userId: string): Promise<{
+  async getStats(userId: number): Promise<{
     total: number;
     unread: number;
     byChannel: Record<NotificationChannel, number>;
@@ -147,7 +157,7 @@ export class NotificationsService {
     };
   }
 
-  async delete(id: string, userId: string): Promise<boolean> {
+  async delete(id: number, userId: number): Promise<boolean> {
     const result = await this.notificationRepository.delete({ id, userId });
     return (result.affected || 0) > 0;
   }
@@ -169,12 +179,12 @@ export class NotificationsService {
     return query.orderBy('template.name', 'ASC').getMany();
   }
 
-  async updateTemplate(id: string, dto: Partial<CreateTemplateDto>): Promise<NotificationTemplate | null> {
+  async updateTemplate(id: number, dto: Partial<CreateTemplateDto>): Promise<NotificationTemplate | null> {
     await this.templateRepository.update(id, dto);
     return this.templateRepository.findOne({ where: { id } });
   }
 
-  async deleteTemplate(id: string): Promise<boolean> {
+  async deleteTemplate(id: number): Promise<boolean> {
     const result = await this.templateRepository.delete(id);
     return (result.affected || 0) > 0;
   }

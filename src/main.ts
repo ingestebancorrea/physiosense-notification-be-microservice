@@ -26,12 +26,13 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('PhysioSense Notification API')
-    .setDescription('Notification microservice for push, email, SMS and in-app notifications')
+    .setDescription('Notification microservice for push notifications')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('notifications', 'Notification management')
     .addTag('devices', 'Device token management')
     .addTag('preferences', 'Notification preferences')
+    .addTag('push', 'Push channel (Firebase) status')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

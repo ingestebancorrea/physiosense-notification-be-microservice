@@ -7,15 +7,15 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { NotificationChannel } from '../common/enums/notification.enums';
+import { NotificationChannel } from '../../common/enums/notification.enums';
 
 @Entity('notification_templates')
 @Unique(['channel', 'name'])
 @Index(['channel'])
 @Index(['name'])
 export class NotificationTemplate {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', length: 100, unique: true })
   name: string;

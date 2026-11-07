@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 import { NotificationPreference } from './entities/notification-preference.entity';
 import { NotificationChannel } from '../common/enums/notification.enums';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
@@ -12,14 +12,14 @@ export class PreferencesService {
     private preferenceRepository: Repository<NotificationPreference>,
   ) {}
 
-  async getUserPreferences(userId: string): Promise<NotificationPreference[]> {
+  async getUserPreferences(userId: number): Promise<NotificationPreference[]> {
     return this.preferenceRepository.find({
       where: { userId },
       order: { channel: 'ASC', category: 'ASC' },
     });
   }
 
-  async updatePreferences(userId: string, dto: UpdatePreferencesDto): Promise<NotificationPreference[]> {
+  async updatePreferences(userId: number, dto: UpdatePreferencesDto): Promise<NotificationPreference[]> {
     const { preferences } = dto;
 
     for (const pref of preferences) {
@@ -39,13 +39,13 @@ export class PreferencesService {
   }
 
   async updateSingle(
-    userId: string,
+    userId: number,
     channel: NotificationChannel,
     category: string | null,
     enabled: boolean,
     settings?: Record<string, any>,
   ): Promise<NotificationPreference> {
-    const preference = await this.preferenceRepository.upsert(
+    await this.preferenceRepository.upsert(
       {
         userId,
         channel,
@@ -57,18 +57,15 @@ export class PreferencesService {
     );
 
     return this.preferenceRepository.findOneOrFail({
-      where: { userId, channel, category: category || null },
+      where: { userId, channel, category } as FindOptionsWhere<NotificationPreference>,
     });
   }
 
-  async getEffectivePreferences(userId: string): Promise<Record<NotificationChannel, boolean>> {
+  async getEffectivePreferences(userId: number): Promise<Record<NotificationChannel, boolean>> {
     const prefs = await this.getUserPreferences(userId);
 
     const defaults: Record<NotificationChannel, boolean> = {
-      [NotificationChannel.IN_APP]: true,
       [NotificationChannel.PUSH]: true,
-      [NotificationChannel.EMAIL]: true,
-      [NotificationChannel.SMS]: false,
     };
 
     const result = { ...defaults };
@@ -82,7 +79,7 @@ export class PreferencesService {
     return result;
   }
 
-  async isEnabled(userId: string, channel: NotificationChannel, category?: string): Promise<boolean> {
+  async isEnabled(userId: number, channel: NotificationChannel, category?: string): Promise<boolean> {
     const prefs = await this.getUserPreferences(userId);
 
     const specific = prefs.find((p) => p.channel === channel && p.category === category);
@@ -92,16 +89,13 @@ export class PreferencesService {
     if (general) return general.enabled;
 
     const defaults: Record<NotificationChannel, boolean> = {
-      [NotificationChannel.IN_APP]: true,
       [NotificationChannel.PUSH]: true,
-      [NotificationChannel.EMAIL]: true,
-      [NotificationChannel.SMS]: false,
     };
 
     return defaults[channel];
   }
 
-  async resetToDefaults(userId: string): Promise<void> {
+  async resetToDefaults(userId: number): Promise<void> {
     await this.preferenceRepository.delete({ userId });
   }
 }

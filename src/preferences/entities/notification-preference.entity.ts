@@ -7,26 +7,26 @@ import {
   Index,
   Unique,
 } from 'typeorm';
-import { NotificationChannel } from '../common/enums/notification.enums';
+import { NotificationChannel } from '../../common/enums/notification.enums';
 
 @Entity('notification_preferences')
 @Unique(['userId', 'channel', 'category'])
 @Index(['userId'])
 export class NotificationPreference {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'uuid' })
-  userId: string;
+  @Column({ type: 'int' })
+  userId: number;
 
   @Column({
-    type: 'enum',
+    type: 'varchar',
     enum: NotificationChannel,
   })
   channel: NotificationChannel;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  category: string;
+  category: string | null;
 
   @Column({ type: 'boolean', default: true })
   enabled: boolean;
