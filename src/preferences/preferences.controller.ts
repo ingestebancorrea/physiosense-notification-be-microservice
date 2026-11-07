@@ -13,21 +13,21 @@ export class PreferencesController {
   @Get()
   @ApiOperation({ summary: 'Get user notification preferences' })
   @ApiResponse({ status: 200, description: 'List of preferences' })
-  async getPreferences(@Query('userId') userId: string) {
+  async getPreferences(@Query('userId') userId: number) {
     return this.preferencesService.getUserPreferences(userId);
   }
 
   @Get('effective')
   @ApiOperation({ summary: 'Get effective preferences (with defaults)' })
   @ApiResponse({ status: 200, description: 'Effective preferences per channel' })
-  async getEffectivePreferences(@Query('userId') userId: string) {
+  async getEffectivePreferences(@Query('userId') userId: number) {
     return this.preferencesService.getEffectivePreferences(userId);
   }
 
   @Put()
   @ApiOperation({ summary: 'Update user notification preferences (bulk)' })
   @ApiResponse({ status: 200, description: 'Updated preferences' })
-  async updatePreferences(@Query('userId') userId: string, @Body() dto: UpdatePreferencesDto) {
+  async updatePreferences(@Query('userId') userId: number, @Body() dto: UpdatePreferencesDto) {
     return this.preferencesService.updatePreferences(userId, dto);
   }
 
@@ -35,7 +35,7 @@ export class PreferencesController {
   @ApiOperation({ summary: 'Update single preference' })
   @ApiResponse({ status: 200, description: 'Updated preference' })
   async updateSingle(
-    @Query('userId') userId: string,
+    @Query('userId') userId: number,
     @Param('channel') channel: NotificationChannel,
     @Query('category') category: string | null,
     @Body() body: { enabled: boolean; settings?: Record<string, any> },
@@ -47,7 +47,7 @@ export class PreferencesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Reset preferences to defaults' })
   @ApiResponse({ status: 204, description: 'Preferences reset' })
-  async resetPreferences(@Query('userId') userId: string) {
+  async resetPreferences(@Query('userId') userId: number) {
     await this.preferencesService.resetToDefaults(userId);
   }
 }

@@ -344,7 +344,7 @@ export class PushNotificationService {
       notification: this.toNotificationPayload(notification),
       data: {
         ...this.toDataPayload(notification.data),
-        notificationId: notification.id,
+        notificationId: String(notification.id),
         channel: NotificationChannel.PUSH,
       },
       android: {
@@ -408,7 +408,7 @@ export class PushNotificationService {
         notification: this.toNotificationPayload(notification),
         data: {
           ...this.toDataPayload(notification.data),
-          notificationId: notification.id,
+          notificationId: String(notification.id),
           channel: NotificationChannel.PUSH,
         },
       });

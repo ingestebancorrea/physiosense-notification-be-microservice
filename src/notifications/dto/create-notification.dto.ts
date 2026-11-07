@@ -1,25 +1,12 @@
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsObject,
-  IsUUID,
-  IsDateString,
-  ValidateNested,
-  IsArray,
-  IsNotEmpty,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsObject, IsInt, IsDateString, ValidateNested, IsArray } from 'class-validator';
 import { Type } from 'class-transformer';
 import { NotificationChannel, NotificationPriority } from '../../common/enums/notification.enums';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateNotificationDto {
-  @ApiProperty({ example: '26', description: 'User id from the auth service (numeric id as string) or a UUID' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(64)
-  userId: string;
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  userId: number;
 
   @ApiProperty({ example: 'Nueva cita agendada' })
   @IsString()
@@ -54,10 +41,10 @@ export class CreateNotificationDto {
   @IsString()
   actionUrl?: string;
 
-  @ApiPropertyOptional({ example: 'template-uuid-here' })
+  @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsUUID()
-  templateId?: string;
+  @IsInt()
+  templateId?: number;
 
   @ApiPropertyOptional({ example: { doctorName: 'Dr. Pérez', time: '10:00 AM' } })
   @IsOptional()
@@ -100,12 +87,10 @@ export class CreateTemplateDto {
 }
 
 export class BulkNotificationDto {
-  @ApiProperty({ type: [String], example: ['26', '42'] })
+  @ApiProperty({ type: [Number], example: [1, 2, 3] })
   @IsArray()
-  @IsString({ each: true })
-  @IsNotEmpty({ each: true })
-  @MaxLength(64, { each: true })
-  userIds: string[];
+  @IsInt({ each: true })
+  userIds: number[];
 
   @ValidateNested()
   @Type(() => CreateNotificationDto)

@@ -14,8 +14,8 @@ import { NotificationChannel } from '../../common/enums/notification.enums';
 @Index(['channel'])
 @Index(['name'])
 export class NotificationTemplate {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column({ type: 'varchar', length: 100, unique: true })
   name: string;

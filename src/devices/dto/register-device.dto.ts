@@ -1,13 +1,11 @@
-import { IsString, IsEnum, IsOptional, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsEnum, IsOptional, IsInt } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DevicePlatform } from '../../common/enums/notification.enums';
 
 export class RegisterDeviceDto {
-  @ApiProperty({ example: '26', description: 'User id from the auth service (numeric id as string) or a UUID' })
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(64)
-  userId: string;
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  userId: number;
 
   @ApiProperty({ example: 'fcm-token-string-here' })
   @IsString()

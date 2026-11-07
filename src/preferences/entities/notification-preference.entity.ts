@@ -13,11 +13,11 @@ import { NotificationChannel } from '../../common/enums/notification.enums';
 @Unique(['userId', 'channel', 'category'])
 @Index(['userId'])
 export class NotificationPreference {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-  @Column({ type: 'varchar', length: 64 })
-  userId: string;
+  @Column({ type: 'int' })
+  userId: number;
 
   @Column({
     type: 'varchar',
